@@ -1,4 +1,4 @@
-use crate::transaction_record::TransactionRecord;
+use super::transaction_record::TransactionRecord;
 use rust_decimal::Decimal;
 use serde::Serialize;
 use std::io::{Result as IoResult, Write};
