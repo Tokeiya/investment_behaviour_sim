@@ -16,8 +16,4 @@ impl PassBook {
 	pub fn transaction_history(&self) -> &[TransactionRecord] {
 		&self.0
 	}
-
-	pub fn dump(&self, writer: &mut dyn Write) -> IoResult<()> {
-		todo!()
-	}
 }
