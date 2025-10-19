@@ -4,3 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+rand_distr = "*"
+serde_json = "*"
+rayon = "*"
+thiserror = "*"
+anyhow = "*"
+rust_decimal = "*"
+serde = { version = "1.0.228", features = ["derive"] }
