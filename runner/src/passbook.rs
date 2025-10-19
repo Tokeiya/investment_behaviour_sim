@@ -17,7 +17,7 @@ impl PassBook {
 		&self.0
 	}
 
-	pub fn bookkeeping(&self, writer: &mut dyn Write) -> IoResult<()> {
+	pub fn dump(&self, writer: &mut dyn Write) -> IoResult<()> {
 		todo!()
 	}
 }
