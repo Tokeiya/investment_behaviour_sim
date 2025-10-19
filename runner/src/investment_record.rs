@@ -17,22 +17,39 @@ impl InvestmentRecord {
 		deviation: f64,
 		current_interest: f64,
 	) -> Result<Self, ArgumentError> {
-		todo!()
+		if deviation < 0.0 {
+			Err(ArgumentError::ArgumentOutOfRange(format!(
+				"deviation must be positive: {}",
+				deviation
+			)))
+		} else {
+			Ok(Self {
+				n: 0,
+				name,
+				mean_interest,
+				deviation,
+				current_interest,
+			})
+		}
 	}
 
 	pub fn name(&self) -> &str {
-		todo!()
+		self.name.as_str()
 	}
 
 	pub fn mean_interest(&self) -> f64 {
-		todo!()
+		self.mean_interest
 	}
 
 	pub fn deviation(&self) -> f64 {
-		todo!()
+		self.deviation
 	}
 
 	pub fn current_interest(&self) -> f64 {
-		todo!()
+		self.current_interest
+	}
+
+	pub fn sharp_ratio(&self, rf: f64) -> f64 {
+		(self.mean_interest - rf) / self.deviation
 	}
 }

@@ -1,3 +1,4 @@
+use crate::argument_error::ArgumentError;
 use rust_decimal::Decimal;
 use serde::Serialize;
 
