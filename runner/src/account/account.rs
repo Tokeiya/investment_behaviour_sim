@@ -1,37 +1,39 @@
-use super::passbook::PassBook;
 use super::transaction_record::TransactionRecord;
 use rust_decimal::Decimal;
-
+type TransactionHistory = Vec<TransactionRecord>;
 pub struct Account {
 	n: usize,
-	current_balance: Decimal,
-	transaction_history: PassBook,
+	transaction_history: TransactionHistory,
 }
 
 impl Account {
 	pub fn new() -> Self {
 		Self {
 			n: 0,
-			current_balance: Decimal::ZERO,
-			transaction_history: PassBook::new(),
+			transaction_history: TransactionHistory::new(),
 		}
 	}
 
 	pub fn transaction(&mut self, amount: Decimal) -> TransactionRecord {
 		self.n += 1;
-		self.current_balance += amount;
-		let record = TransactionRecord::new(self.n, amount, self.current_balance);
 
-		self.transaction_history.add_transaction(record);
+		let record = TransactionRecord::new(self.n, amount, self.current_balance() + amount);
+		self.transaction_history.push(record);
 
 		record
 	}
 
 	pub fn current_balance(&self) -> Decimal {
-		self.current_balance
+		let recent = self.transaction_history.last();
+
+		if let Some(recent) = recent {
+			return recent.balance();
+		} else {
+			return Decimal::ZERO;
+		}
 	}
 
-	pub fn passbook(&self) -> &PassBook {
+	pub fn transaction_history(&self) -> &[TransactionRecord] {
 		&self.transaction_history
 	}
 
@@ -49,7 +51,7 @@ mod tests {
 		let account = Account::new();
 		assert_eq!(account.current_balance(), Decimal::ZERO);
 		assert_eq!(account.n, 0);
-		assert_eq!(account.passbook().transaction_history().len(), 0);
+		assert_eq!(account.transaction_history().len(), 0);
 	}
 
 	#[test]
@@ -58,7 +60,7 @@ mod tests {
 		let record = account.transaction(Decimal::from(100));
 		assert_eq!(account.current_balance(), Decimal::from(100));
 		assert_eq!(account.n, 1);
-		assert_eq!(account.passbook().transaction_history().len(), 1);
+		assert_eq!(account.transaction_history().len(), 1);
 
 		assert_eq!(record.n(), 1);
 		assert_eq!(record.amount(), Decimal::from(100));
@@ -67,7 +69,7 @@ mod tests {
 		let record = account.transaction(Decimal::from(-100));
 		assert_eq!(account.current_balance(), Decimal::ZERO);
 		assert_eq!(account.n, 2);
-		assert_eq!(account.passbook().transaction_history().len(), 2);
+		assert_eq!(account.transaction_history().len(), 2);
 
 		assert_eq!(record.n(), 2);
 		assert_eq!(record.amount(), Decimal::from(-100));
@@ -75,29 +77,20 @@ mod tests {
 	}
 
 	#[test]
-	fn passbook_test() {
+	fn transaction_history_test() {
 		let mut account = Account::new();
 		account.transaction(Decimal::from(100));
 		account.transaction(Decimal::from(-100));
 
-		assert_eq!(account.passbook().transaction_history().len(), 2);
-		let fixture = account.passbook();
+		assert_eq!(account.transaction_history().len(), 2);
+		let fixture = account.transaction_history();
 
-		assert_eq!(fixture.transaction_history().len(), 2);
-		assert_eq!(fixture.transaction_history()[0].n(), 1);
-		assert_eq!(
-			fixture.transaction_history()[0].amount(),
-			Decimal::from(100)
-		);
-		assert_eq!(
-			fixture.transaction_history()[0].balance(),
-			Decimal::from(100)
-		);
-		assert_eq!(fixture.transaction_history()[1].n(), 2);
-		assert_eq!(
-			fixture.transaction_history()[1].amount(),
-			Decimal::from(-100)
-		);
-		assert_eq!(fixture.transaction_history()[1].balance(), Decimal::ZERO);
+		assert_eq!(fixture.len(), 2);
+		assert_eq!(fixture[0].n(), 1);
+		assert_eq!(fixture[0].amount(), Decimal::from(100));
+		assert_eq!(fixture[0].balance(), Decimal::from(100));
+		assert_eq!(fixture[1].n(), 2);
+		assert_eq!(fixture[1].amount(), Decimal::from(-100));
+		assert_eq!(fixture[1].balance(), Decimal::ZERO);
 	}
 }
