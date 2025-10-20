@@ -1,5 +1,6 @@
 mod account;
 mod argument_error;
+mod investment;
 mod investment_record;
 
 fn main() {
