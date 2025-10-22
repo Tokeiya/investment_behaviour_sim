@@ -1,5 +1,14 @@
 use crate::argument_error::ArgumentError;
 use crate::invalid_operation_error::InvalidOperationError;
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum SharpRatioError {
+	#[error("InvalidOperationError:{0}")]
+	InvalidOperationError(#[from] InvalidOperationError),
+	#[error("ArgumentError:{0}")]
+	ArgumentError(#[from] ArgumentError),
+}
 
 pub struct BrandRecord {
 	name: String,
@@ -9,23 +18,59 @@ pub struct BrandRecord {
 
 impl BrandRecord {
 	pub fn new(name: String, mean_interest: f64, deviation: f64) -> Result<Self, ArgumentError> {
-		todo!()
+		if mean_interest.is_nan() || mean_interest.is_infinite() {
+			Err(ArgumentError::InvalidArgument(
+				"mean_interest is NaN or Inf".to_string(),
+			))
+		} else if deviation.is_nan() || deviation.is_infinite() {
+			Err(ArgumentError::InvalidArgument(
+				"deviation is NaN or Inf".to_string(),
+			))
+		} else if deviation < 0.0 {
+			Err(ArgumentError::ArgumentOutOfRange(
+				"deviation is negative".to_string(),
+			))
+		} else {
+			Ok(Self {
+				name,
+				mean_interest,
+				deviation,
+			})
+		}
 	}
 
 	pub fn name(&self) -> &str {
-		todo!()
+		self.name.as_str()
 	}
 
 	pub fn mean_interest(&self) -> f64 {
-		todo!()
+		self.mean_interest
 	}
 
 	pub fn deviation(&self) -> f64 {
-		todo!()
+		self.deviation
 	}
 
-	pub fn sharp_ratio(&self, rf: f64) -> Result<f64, InvalidOperationError> {
-		todo!()
+	pub fn sharpe_ratio(&self, rf: f64) -> Result<f64, SharpRatioError> {
+		let numerator = self.mean_interest - rf;
+
+		if rf.is_nan() || rf.is_infinite() {
+			return Err(SharpRatioError::ArgumentError(
+				ArgumentError::InvalidArgument("rf is NaN or Inf".to_string()),
+			));
+		} else if self.deviation == 0.0 && numerator == 0.0 {
+			Err(SharpRatioError::InvalidOperationError(
+				InvalidOperationError::new("InvalidOperation:SharpeRatio".to_string()),
+			))
+		} else if self.deviation == 0.0 {
+			if numerator.is_sign_negative() {
+				Ok(f64::NEG_INFINITY)
+			} else {
+				Ok(f64::INFINITY)
+			}
+		} else {
+			Ok(numerator / self.deviation)
+		}
 	}
 }
 
@@ -49,6 +94,36 @@ mod tests {
 			.err()
 			.unwrap();
 		assert!(matches!(fixture, ArgumentError::ArgumentOutOfRange(_)));
+
+		let fixture = BrandRecord::new("test".to_string(), f64::NAN, 0.0)
+			.err()
+			.unwrap();
+		assert!(matches!(fixture, ArgumentError::InvalidArgument(_)));
+
+		let fixture = BrandRecord::new("test".to_string(), 0.0, f64::NAN)
+			.err()
+			.unwrap();
+		assert!(matches!(fixture, ArgumentError::InvalidArgument(_)));
+
+		let fixture = BrandRecord::new("test".to_string(), f64::INFINITY, 0.0)
+			.err()
+			.unwrap();
+		assert!(matches!(fixture, ArgumentError::InvalidArgument(_)));
+
+		let fixture = BrandRecord::new("test".to_string(), f64::NEG_INFINITY, 0.0)
+			.err()
+			.unwrap();
+		assert!(matches!(fixture, ArgumentError::InvalidArgument(_)));
+
+		let fixture = BrandRecord::new("test".to_string(), 0.0, f64::INFINITY)
+			.err()
+			.unwrap();
+		assert!(matches!(fixture, ArgumentError::InvalidArgument(_)));
+
+		let fixture = BrandRecord::new("test".to_string(), 0.0, f64::NEG_INFINITY)
+			.err()
+			.unwrap();
+		assert!(matches!(fixture, ArgumentError::InvalidArgument(_)));
 	}
 
 	#[test]
@@ -71,6 +146,29 @@ mod tests {
 
 	#[test]
 	fn sharp_ratio_test() {
-		todo!()
+		let fixture = BrandRecord::new("test".to_string(), 0.25, 0.5).unwrap();
+		assert_eq!(fixture.sharpe_ratio(0.05).unwrap(), 0.4);
+
+		assert!(matches!(
+			fixture.sharpe_ratio(f64::NAN).unwrap_err(),
+			SharpRatioError::ArgumentError(_)
+		));
+		assert!(matches!(
+			fixture.sharpe_ratio(f64::INFINITY).unwrap_err(),
+			SharpRatioError::ArgumentError(ArgumentError::InvalidArgument(_))
+		));
+		assert!(matches!(
+			fixture.sharpe_ratio(f64::NEG_INFINITY).unwrap_err(),
+			SharpRatioError::ArgumentError(ArgumentError::InvalidArgument(_))
+		));
+
+		let fixture = BrandRecord::new("test".to_string(), 0.0, 0.0).unwrap();
+		assert_eq!(fixture.sharpe_ratio(0.5).unwrap(), f64::NEG_INFINITY);
+		assert_eq!(fixture.sharpe_ratio(-0.5).unwrap(), f64::INFINITY);
+
+		assert!(matches!(
+			fixture.sharpe_ratio(0.0).unwrap_err(),
+			SharpRatioError::InvalidOperationError(_)
+		));
 	}
 }
