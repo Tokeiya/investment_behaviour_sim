@@ -3,7 +3,7 @@ use crate::invalid_operation_error::InvalidOperationError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum SharpRatioError {
+pub enum SharpeRatioError {
 	#[error("InvalidOperationError:{0}")]
 	InvalidOperationError(#[from] InvalidOperationError),
 	#[error("ArgumentError:{0}")]
@@ -51,15 +51,15 @@ impl BrandRecord {
 		self.deviation
 	}
 
-	pub fn sharpe_ratio(&self, rf: f64) -> Result<f64, SharpRatioError> {
+	pub fn sharpe_ratio(&self, rf: f64) -> Result<f64, SharpeRatioError> {
 		let numerator = self.mean_interest - rf;
 
 		if rf.is_nan() || rf.is_infinite() {
-			return Err(SharpRatioError::ArgumentError(
+			return Err(SharpeRatioError::ArgumentError(
 				ArgumentError::InvalidArgument("rf is NaN or Inf".to_string()),
 			));
 		} else if self.deviation == 0.0 && numerator == 0.0 {
-			Err(SharpRatioError::InvalidOperationError(
+			Err(SharpeRatioError::InvalidOperationError(
 				InvalidOperationError::new("InvalidOperation:SharpeRatio".to_string()),
 			))
 		} else if self.deviation == 0.0 {
@@ -151,15 +151,15 @@ mod tests {
 
 		assert!(matches!(
 			fixture.sharpe_ratio(f64::NAN).unwrap_err(),
-			SharpRatioError::ArgumentError(_)
+			SharpeRatioError::ArgumentError(_)
 		));
 		assert!(matches!(
 			fixture.sharpe_ratio(f64::INFINITY).unwrap_err(),
-			SharpRatioError::ArgumentError(ArgumentError::InvalidArgument(_))
+			SharpeRatioError::ArgumentError(ArgumentError::InvalidArgument(_))
 		));
 		assert!(matches!(
 			fixture.sharpe_ratio(f64::NEG_INFINITY).unwrap_err(),
-			SharpRatioError::ArgumentError(ArgumentError::InvalidArgument(_))
+			SharpeRatioError::ArgumentError(ArgumentError::InvalidArgument(_))
 		));
 
 		let fixture = BrandRecord::new("test".to_string(), 0.0, 0.0).unwrap();
@@ -168,7 +168,7 @@ mod tests {
 
 		assert!(matches!(
 			fixture.sharpe_ratio(0.0).unwrap_err(),
-			SharpRatioError::InvalidOperationError(_)
+			SharpeRatioError::InvalidOperationError(_)
 		));
 	}
 }
