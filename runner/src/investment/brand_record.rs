@@ -1,6 +1,18 @@
 use crate::argument_error::ArgumentError;
 use crate::invalid_operation_error::InvalidOperationError;
+use rand_distr::Distribution;
 use thiserror::Error;
+
+pub fn generate_brand_record<T: Distribution<f64>>(
+	rng: &mut T,
+	name: String,
+	max_interest: f64,
+	min_interest: f64,
+	max_deviation: f64,
+	min_deviation: f64,
+) -> Result<BrandRecord, ArgumentError> {
+	todo!()
+}
 
 #[derive(Debug, Error)]
 pub enum SharpeRatioError {
