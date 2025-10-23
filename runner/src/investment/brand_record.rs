@@ -1,16 +1,14 @@
 use crate::argument_error::ArgumentError;
 use crate::invalid_operation_error::InvalidOperationError;
+use rand::Rng;
 use rand_distr::Distribution;
 use thiserror::Error;
 
-pub fn generate_brand_record<T: Distribution<f64>>(
-	rng: &mut T,
+pub fn generate_brand_record<D: Distribution<f64>, R: Rng + ?Sized>(
+	rng: &mut R,
+	dist: &mut D,
 	name: String,
-	max_interest: f64,
-	min_interest: f64,
-	max_deviation: f64,
-	min_deviation: f64,
-) -> Result<BrandRecord, ArgumentError> {
+) -> BrandRecord {
 	todo!()
 }
 

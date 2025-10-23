@@ -10,4 +10,5 @@ rayon = "*"
 thiserror = "*"
 anyhow = "*"
 rust_decimal = "*"
-serde = { version = "1.0.228", features = ["derive"] }
+serde = { version = "*", features = ["derive"] }
+rand = "*"
