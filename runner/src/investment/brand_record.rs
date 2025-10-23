@@ -67,9 +67,9 @@ impl BrandRecord {
 		let numerator = self.mean_interest - rf;
 
 		if rf.is_nan() || rf.is_infinite() {
-			return Err(SharpeRatioError::ArgumentError(
+			Err(SharpeRatioError::ArgumentError(
 				ArgumentError::InvalidArgument("rf is NaN or Inf".to_string()),
-			));
+			))
 		} else if self.deviation == 0.0 && numerator == 0.0 {
 			Err(SharpeRatioError::InvalidOperationError(
 				InvalidOperationError::new("InvalidOperation:SharpeRatio".to_string()),
